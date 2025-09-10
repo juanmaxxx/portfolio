@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortPlace</title>
+    <style>
+        /* Estilo General y Fondo */
+        body {
+            background-color: #55a8f4;
+            margin: 0;
+            color: #000;
+            font-family: 'MS Sans Serif', 'Arial', sans-serif;
+            background-image: url('https://i.imgur.com/a1RZ3uB.jpeg');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            background-attachment: fixed;
+            height: 200vh; /* MODIFICADO: Aumenta la altura para permitir scroll */
+            overflow: auto;   /* MODIFICADO: Permite el scroll */
+            position: relative;
+        }
+
+        /* Estilo base de ventana de Windows XP */
+        .window-style {
+            background-color: #f0f0f0;
+            border: 1px solid #7c7c7c;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            position: absolute;
+            z-index: 200;
+            font-family: 'MS Sans Serif', 'Arial', sans-serif;
+            color: #000;
+            box-sizing: border-box;
+        }
+
+        .window-style .title-bar {
+            background: linear-gradient(to right, #3a6ea5, #4c8fdc);
+            color: #fff;
+            padding: 2px 4px;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            border-bottom: 1px solid #2d5a89;
+        }
+
+        .window-style .title-bar-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-left: 5px;
+        }
+
+        .window-style .title-bar-controls {
+            display: flex;
+            gap: 2px;
+        }
+
+        .window-style .title-bar-button {
+            background-color: #c0c0c0;
+            border: 1px solid #7c7c7c;
+            width: 20px;
+            height: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #000;
+            cursor: pointer;
+            box-shadow: 1px 1px 0px #fff inset;
+        }
+
+        .window-style .title-bar-button.close-button {
+            background-color: #e04343;
+            border-color: #a02323;
+            color: #fff;
+            box-shadow: 1px 1px 0px #ff6363 inset;
+        }
+
+        .window-style .title-bar-button:active {
+            border: 1px inset #000;
+            background-color: #808080;
+            box-shadow: none;
+        }
+        .window-style .title-bar-button.close-button:active {
+            background-color: #a02323;
+        }
+
+        .window-style .window-content {
+            padding: 8px;
+            background-color: #fff;
+            overflow: auto;
+            max-height: calc(100% - 24px);
+            color: #000;
+            border: 1px solid #7c7c7c;
+            border-top: none;
+        }
+
+        /* Estilo para las galerías */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .gallery img, .gallery video {
+            width: 100%;
+            height: auto;
+            border: 1px solid #a0a0a0;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            background-color: #f0f0f0;
+        }
+        .gallery img[alt^="Descripción"] {
+            content: "";
+            display: block;
+            background-color: #f0f0f0;
+            border: 1px solid #c0c0c0;
+            height: 100px;
+            width: 100%;
+            color: transparent;
+            text-indent: -9999px;
+        }
+        .gallery img[alt^="Descripción"]:before {
+            content: "";
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #e0e0e0;
+            border: 1px solid #c0c0c0;
+            box-sizing: border-box;
+        }
+
+        /* Estilo para la galería de audio */
+        .audio-gallery audio {
+            width: 100%;
+            margin-top: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #a0a0a0;
+        }
+        .audio-gallery p {
+            color: #000;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        /* Estilo para los GIFs y elementos flotantes */
+        .floating-gif {
+            position: absolute;
+            z-index: 101; /* Z-index menor que las ventanas, para que no las tapen */
+            cursor: move;
+        }
+        /* Posicionamiento de los GIFs (ajustado para ser menos intrusivo) */
+        #gif1 { top: 10%; left: 20%; }
+        #gif2 { top: 80%; right: 15%; }
+        #gif3 { top: 15%; right: 36%; }
+        #gif4 { top: 45%; left: 60%; }
+        #gif5 { top: 52%; left: 46%; }
+        #gif6 { top: 25%; right: 8%; }
+        #gif7 { top: 30%; left: 60%; }
+        #gif8 { top: 55%; right: 20%; }
+        #gif9 { top: 17%; left: 25%; }
+        #gif10 { top: 5%; left: 75%; }
+        #gif11{ top: 60%; left: 45%; }
+        #gif12 { top: 35%; left: 70%; }
+        #gif13 { top: 25%; left: 40%; }
+        #gif14 { top: 55%; left: 27%; }
+        #gif15 { top: 83%; left: 10%; }
+
+        /* --- INICIO DE NUEVAS POSICIONES DE GIFS --- */
+        #gif16 { top: 50%; left: 70%; }
+        #gif17 { top: 70%; right: 40%; }
+        #gif18 { top: 71%; left: 73%; }
+        #gif19 { top: 15%; left: 80%; }
+        #gif120 { top: 75%; left: 15%; } /* Mantuve tu ID 'gif120' */
+        #gif21 { top: 80%; right: 53%; }
+        #gif22 { top: 65%; left: 5%; }
+        #gif23 { top: 5%; right: 5%; }
+        #gif24 { 
+            top: 30%; 
+            right: 55%; 
+            z-index: 1; /* MODIFICADO: Menor z-index para que quede detrás */
+        }
+
+        /* --- FIN DE NUEVAS POSICIONES DE GIFS --- */
+
+
+        /* Estilo para las ventanas flotantes y sus posiciones */
+        .floating-window {
+            width: 350px;
+            min-height: 100px;
+        }
+
+        #about-window {
+            width: 400px;
+            height: 250px;
+            top: 25%;
+            left: 10%; /* Posición ajustada para moverla a la izquierda */
+        }
+        #photos-window {
+            width: 300px;
+            height: 200px;
+            top: 37%;
+            left: 40%;
+        }
+        #videos-window {
+            width: 300px;
+            height: 200px;
+            top: 20%;
+            right: 15%;
+        }
+        #music-window {
+            width: 380px;
+            height: 280px;
+            top: 60%;
+            left: 20%;
+        }
+        #visits-counter {
+            width: 280px;
+            height: 120px;
+            top: 5%;
+            left: 40%;
+        }
+        #guestbook-window {
+            width: 300px;
+            height: 200px;
+            top: 50%;
+            right: 5%;
+        }
+
+        #featured-photo-window {
+            width: 450px;
+            height: 350px;
+            top: 75%; /* Posicionado más abajo */
+            left: 50%;
+        }
+        #featured-photo-window .window-content img {
+            width: 100%;
+            height: auto;
+        }
+        #skills-window {
+            width: 400px;
+            height: 250px;
+            top: 85%; /* Posicionado más abajo */
+            left: 10%;
+        }
+        
+        /* --- INICIO DE NUEVOS ESTILOS PARA VENTANA DE CONTACTO --- */
+        #contact-window {
+            width: 280px;
+            height: 220px;
+            top: 45%;
+            left: 5%;
+        }
+        #contact-window .window-content a {
+            color: #0000FF;
+            text-decoration: underline;
+        }
+        /* --- FIN DE NUEVOS ESTILOS PARA VENTANA DE CONTACTO --- */
+
+        /* Estilo para la nueva ventana de música de fondo */
+        #background-music-window {
+            width: 200px;
+            height: 100px; /* Ajusta el tamaño según necesites */
+            top: 5%; /* Ajustado para la esquina superior izquierda */
+            left: 5%; /* Ajustado para la esquina superior izquierda */
+            z-index: 205; /* Asegura que esté por encima de otros elementos */
+        }
+        #background-music-window .window-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        #background-music-window .window-content button {
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+
+        /* Estilo para los nuevos links flotantes */
+        .nav-link {
+            position: absolute;
+            z-index: 20;
+            color: #000;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.7);
+            transition: transform 0.2s ease-in-out;
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            border: 1px solid #7c7c7c;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+        .nav-link:hover {
+            transform: scale(1.05);
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.9);
+            background-color: #c0c0c0;
+        }
+        #nav-about { top: 15%; left: 5%; }
+        #nav-photos { top: 35%; left: 5%; }
+        #nav-videos { top: 55%; left: 5%; }
+        #nav-music { top: 75%; left: 5%; }
+
+        /* Pie de página (Footer) */
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #000;
+            border-top: 1px dashed #a0a0a0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #e3e3db;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <audio id="background-audio" src="https://juanmaxxx.github.io/portfolio/F.E.A.R. Soundtrack - Vator Tune [MHT0ueHjacM].mp3" loop autoplay></audio>
+
+    <section id="background-music-window" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Reproductor</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <p>F.E.A.R Soundtrack - Vator Tune</p>
+            <button id="toggle-music-button">Pausar</button>
+        </div>
+    </section>
+
+    <section id="about-window" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Sobre Mí</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h2>Sobre Mí</h2>
+            <p>Holaa, soy Juanma, algunos me llaman artista, otros programador pero yo creo que solo soy un pibe que aprende en un largo camino que es la vida.</p>
+            <p>Como veran, mi estilo es un tanto particular, pero tengo muy buenos gustos (aunque no parezca jaja). Me dedico a la programacion de paginas web pero estoy haciendo la carrera de ingeniería en sonido. La musica es lo mio y vivir de ello es mi mayor sueño!</p>
+        </div>
+    </section>
+
+    <section id="photos-window" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Galería de Fotos</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h2>Galería de Fotos</h2>
+            <div class="gallery">
+                <img src="https://juanmaxxx.github.io/portfolio/AP1GczNTEMKb9DZD1nyckq-GT4RT0GYhHa5JtCqOv8pvF1Fh2LmVjHzSSEEtpgw551-h919-s-no-gm.png" alt="Yo de chico">
+                <img src="https://juanmaxxx.github.io/portfolio/97558826-b86d-4863-b214-5d35433090e5.jpg" alt="Un salchicha">
+                <img src="https://juanmaxxx.github.io/portfolio/6b49fd50ffa75b289265ed8939aa6017.jpg" alt="Otro salchicha">
+                <img src="https://juanmaxxx.github.io/portfolio/ea7309f9-8e08-4e22-8907-d073d7b99f36.jpg" alt="Los Pibes">
+                <img src="https://juanmaxxx.github.io/portfolio/Imagen de WhatsApp 2025-01-01 a las 22.57.39_326e4a28.jpg" alt="Los pibes devuelta">
+                <img src="https://juanmaxxx.github.io/portfolio/fito.jpg" alt="Me fui">
+            </div>
+        </div>
+    </section>
+
+    <section id="videos-window" class="window-style floating-window"> 
+        <div class="title-bar">
+            <div class="title-bar-text">Galería de Videos</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h2>Galería de Videos</h2>
+            <div class="gallery">
+                <video src="https://juanmaxxx.github.io/portfolio/A$AP Rocky Introduces Get Lit.mp4" controls></video>
+                <video src="https://juanmaxxx.github.io/portfolio/Gustavo Cerati - Me quedo aquí (Official Video).mp4" controls></video>
+            </div>
+        </div>
+    </section>
+
+    <section id="music-window" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Obras Musicales</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h2>Mis Obras!</h2>
+            <div class="audio-gallery">
+                <p>nose.</p>
+                <audio src="https://juanmaxxx.github.io/portfolio/nose.mp3" controls></audio>
+                <p>arono.</p>
+                <audio src="https://juanmaxxx.github.io/portfolio/aronoo.mp3" controls></audio>
+                <p>superplu.</p>
+                <audio src="https://juanmaxxx.github.io/portfolio/superplu.mp3" controls></audio>
+                <p>aidonow.</p>
+                <audio src="https://juanmaxxx.github.io/portfolio/adionow.mp3" controls></audio>
+            </div>
+        </div>
+    </section>
+    
+    <div id="visits-counter" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Contador de Visitas</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h3>Visitas</h3>
+            <p>Recibimos 1205 visitas. ¡Gracias!</p>
+        </div>
+    </div>
+
+    <section id="guestbook-window" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Diario de Visitas</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h2>Diario de Visitas</h2>
+            <p>¡Deja un comentario! </p>
+            <textarea rows="4" cols="25"></textarea><br>
+            <button>Firmar</button>
+        </div>
+    </section>
+
+    <section id="featured-photo-window" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Mi Novia!!!!</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <img src="https://juanmaxxx.github.io/portfolio/7149a695-b86d-4fa1-a025-1e906fd8f7fa.jpg" alt="Mi Novia!!!!">
+        </div>
+    </section>
+
+    <section id="skills-window" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Mis Habilidades</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h2>Mi Mundo</h2>
+            <p>Siempre me gusto lo que hago y si pudiera volver en el tiempo lo repetiria millones de veces!</p>
+            <ul>
+                <li>HTML & CSS</li>
+                <li>JavaScript</li>
+                <li>Producción Musical (Fl Studio)</li>
+                <li>Habilidad con los instrumentos</li>
+                <li>Y mucho más...</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="contact-window" class="window-style floating-window">
+        <div class="title-bar">
+            <div class="title-bar-text">Contacto</div>
+            <div class="title-bar-controls">
+                <div class="title-bar-button">_</div>
+                <div class="title-bar-button">□</div>
+                <div class="title-bar-button close-button">x</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <h2>Redes y Contacto</h2>
+            <ul>
+                <li><a href="https://www.instagram.com/juanmaacoria/" target="_blank">Instagram</a></li>
+                <li><a href="https://www.facebook.com/juanmateo.coria.1/" target="_blank">Facebook</a></li>
+                <li><a href="https://github.com/juanmaxxx" target="_blank">GitHub</a></li>
+            </ul>
+            <p><b>Teléfono:</b> +54 11-4166-6688</p>
+        </div>
+    </section>
+    <img src="https://i.imgur.com/NFocPzC.gif" alt="Un gif de una estrella" class="floating-gif" id="gif1">
+    <img src="https://i.imgur.com/SoaXyjx.gif" alt="Un gif de una barra" class="floating-gif" id="gif2">
+    <img src="https://i.imgur.com/y3RyXWm.gif" alt="Un gif de una caja de herramientas" class="floating-gif" id="gif3">
+    <img src="https://i.imgur.com/5U473Cg.gif" alt="Un gif de un perro" class="floating-gif" id="gif4">
+    <img src="https://i.imgur.com/2pLOA9Z.gif" alt="Un gif de un reloj" class="floating-gif" id="gif5">
+    <img src="https://i.imgur.com/HPdw9pK.gif" alt="Un gif de un ojo" class="floating-gif" id="gif6">
+    <img src="https://i.imgur.com/yKHCxBa.gif" alt="Un gif de un ojo" class="floating-gif" id="gif7">
+    <img src="https://i.imgur.com/cVeTCn9.gif" alt="Un gif de un ojo" class="floating-gif" id="gif8">
+    <img src="https://i.imgur.com/YHFZwHS.gif" alt="Un gif de un ojo" class="floating-gif" id="gif9">
+    <img src="https://i.imgur.com/5Gvm7PB.gif" alt="Un gif de un ojo" class="floating-gif" id="gif10">
+    <img src="https://i.imgur.com/JHn3XsI.gif" alt="Un gif de un ojo" class="floating-gif" id="gif11">
+    <img src="https://i.imgur.com/iqbR7Gb.gif" alt="Un gif de un ojo" class="floating-gif" id="gif12">
+    <img src="https://i.imgur.com/qTdg3uY.gif" alt="Un gif de un ojo" class="floating-gif" id="gif13">
+    <img src="https://i.imgur.com/oAJOgkx.gif" alt="Un gif de un ojo" class="floating-gif" id="gif14">
+    <img src="https://i.imgur.com/m4pL3Ox.gif" alt="Un gif de un ojo" class="floating-gif" id="gif15">
+    <img src="https://i.imgur.com/7xHI7Ot.gif" alt="Un gif de un ojo" class="floating-gif" id="gif16">
+    <img src="https://i.imgur.com/cgU3H9H.gif" alt="Un gif de un ojo" class="floating-gif" id="gif17">
+    <img src="https://i.imgur.com/Z2JwgTw.gif" alt="Un gif de un ojo" class="floating-gif" id="gif18">
+    <img src="https://i.imgur.com/JnCZcnF.gif" alt="Un gif de un ojo" class="floating-gif" id="gif19">
+    <img src="https://i.imgur.com/wDkXLFo.gif" alt="Un gif de un ojo" class="floating-gif" id="gif120">
+    <img src="https://i.imgur.com/gFg6ymL.gif" alt="Un gif de un ojo" class="floating-gif" id="gif21">
+    <img src="https://i.imgur.com/kJeNeZx.gif" alt="Un gif de un ojo" class="floating-gif" id="gif22">
+    <img src="https://i.imgur.com/tRQ0WY4.gif" alt="Un gif de un ojo" class="floating-gif" id="gif23">
+    <img src="https://i.imgur.com/vv3PfF1.gif" alt="Un gif de un ojo" class="floating-gif" id="gif24">
+    
+    
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const draggableItems = document.querySelectorAll('.window-style .title-bar, .floating-gif');
+
+        draggableItems.forEach(item => {
+            let isDragging = false;
+            let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+            const parent = item.classList.contains('floating-gif') ? item : item.parentElement;
+
+            item.addEventListener('mousedown', (e) => {
+                // Previene el comportamiento por defecto de arrastre del navegador.
+                e.preventDefault(); 
+                
+                // Si el elemento es una imagen (GIF), elimina la imagen fantasma de arrastre.
+                // Esta parte solo tiene efecto si el navegador intenta crear una imagen de arrastre
+                if (e.dataTransfer) {
+                    e.dataTransfer.setDragImage(new Image(), 0, 0); 
+                }
+
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+                isDragging = true;
+
+                // Para traer la ventana o GIF al frente
+                // Se obtiene el z-index más alto de todos los elementos flotantes
+                let maxZIndex = 0;
+                document.querySelectorAll('.window-style, .floating-gif').forEach(el => {
+                    // Asegúrate de que el z-index se obtenga correctamente, si no es un número, usa 0
+                    const z = parseInt(window.getComputedStyle(el).zIndex) || 0; 
+                    if (z > maxZIndex) {
+                        maxZIndex = z;
+                    }
+                });
+                // Establece el z-index del elemento arrastrado un nivel por encima del más alto actual
+                parent.style.zIndex = maxZIndex + 1; 
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    parent.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+                }
+            });
+        });
+
+        // Lógica para el audio de fondo
+        const backgroundAudio = document.getElementById('background-audio');
+        const toggleMusicButton = document.getElementById('toggle-music-button');
+
+        // Intenta reproducir el audio automáticamente. Puede que los navegadores lo bloqueen.
+        // Si lo bloquean, el usuario tendrá que hacer click en el botón.
+        backgroundAudio.play().catch(error => {
+            console.log("La reproducción automática fue bloqueada. El usuario debe interactuar para reproducir el audio.");
+            // Opcional: Puedes cambiar el texto del botón aquí para indicar que el usuario debe hacer click
+            toggleMusicButton.textContent = "Reproducir";
+        });
+
+        toggleMusicButton.addEventListener('click', () => {
+            if (backgroundAudio.paused) {
+                backgroundAudio.play();
+                toggleMusicButton.textContent = "Pausar";
+            } else {
+                backgroundAudio.pause();
+                toggleMusicButton.textContent = "Reproducir";
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
